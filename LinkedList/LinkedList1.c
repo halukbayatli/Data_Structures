@@ -3,36 +3,68 @@
 
 typedef struct Lesson
 {
-    struct Lesson *nextLesson;
-    lessonName[50];
+    char lessonName[50];
     int midtermGrade;
     int finalGrade;
+    struct Lesson *nextLesson;
 }StuLesson;
 
 typedef struct Student
 {
-    struct Student *nextStu;
-    name[50];
-    surname[50];
+    char name[50];
+    char surname[50];
     int stuNumber;
-    StuLesson lessons;
+    StuLesson *lessons;
+    struct Student *nextStu;
 }Stu;
 
+Stu *Students = NULL;
 
-void lessonAdd(Stu *students)
+StuLesson *lessonAdd(StuLesson *lessons)
 {
-    while(students != NULL)
+    if(lessons == NULL)
     {
-        students = students->nextStu;
+        lessons = (StuLesson*)malloc(sizeof(StuLesson));
+        puts("Ders Adi: ");
+        scanf("%s",lessons->lessonName);
+        puts("")
     }
-    puts("Ad: ");
-    scanf("%s",students->name);
-    puts("Soyad: ");
-    scanf("%s",students->surname);
-    students->stuNumber = 0;
+    else
+    {
+
+    }
+}
+
+Stu *studentAdd(Stu *students)
+{
     int lessonNumber;
-    puts("Ders Sayisi: ");
-    scanf("%d",&lessonNumber);
+    if(students == NULL)
+    {
+        students = (Stu*)malloc(sizeof(Stu));
+        puts("Ad: ");
+        scanf("%s",students->name);
+        puts("Soyad: ");
+        scanf("%s",students->surname);
+        students->stuNumber = 24001;
+        students->lessons = NULL;
+        students->nextStu = students;
+    }
+    else
+    {
+        while(students->nextStu)
+        {
+            students = students->nextStu;
+        }
+        students = (Stu*)malloc(sizeof(Stu));
+        puts("Ad: ");
+        scanf("%s",students->name);
+        puts("Soyad: ");
+        scanf("%s",students->surname);
+        students->stuNumber++;
+        students->lessons = NULL;
+        students->nextStu = students;  
+    }
+    return students;
 }
 
 void main()
@@ -50,7 +82,8 @@ void main()
         system("cls");
         if (choose == 1)
         {
-            /* code */
+            Students = Addition(Students);
+
         }
         else if (choose == 2)
         {
