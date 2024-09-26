@@ -44,15 +44,15 @@ Stu *stuAddition(Stu *students)
             tempStudents = tempStudents->nextStu;
         }
         int number = tempStudents->stuNumber;
-        Stu *newStudents = (Stu*)calloc(1,sizeof(Stu));
+        Stu *newStudent = (Stu*)calloc(1,sizeof(Stu));
         printf("Ad: ");
-        scanf("%s",newStudents->name);
+        scanf("%s",newStudent->name);
         printf("Soyad: ");
-        scanf("%s",newStudents->surname);
-        newStudents->stuNumber = number+1;
-        newStudents->lessons = NULL;
-        newStudents->nextStu = NULL;
-        tempStudents->nextStu = newStudents;
+        scanf("%s",newStudent->surname);
+        newStudent->stuNumber = number+1;
+        newStudent->lessons = NULL;
+        newStudent->nextStu = NULL;
+        tempStudents->nextStu = newStudent;
     }
     return headStudents;
 }
@@ -124,7 +124,7 @@ void main()
         printf("    Listeleme Islemleri     ---> 2\n");
         printf("    Silme Islemleri         ---> 3\n");
         printf("    Siralama Islemleri      ---> 4\n");
-        puts("Islem secimi: ");
+        printf("Islem secimi: ");
         scanf("%d",&choose);
         system("cls");
         if (choose == 1)
