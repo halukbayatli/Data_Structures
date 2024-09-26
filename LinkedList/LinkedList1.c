@@ -28,10 +28,11 @@ Stu *stuAddition(Stu *students)
     {
         students = (Stu*)calloc(1,sizeof(Stu));
         printf("Ad: ");
-        scanf("%s",students->name);
+        scanf(" %[^\n]",students->name);
         printf("Soyad: ");
         scanf("%s",students->surname);
         students->stuNumber = 240001;
+        printf("Numara: %d\n",students->stuNumber);
         students->lessons = NULL;
         students->nextStu = NULL; 
         return students;
@@ -39,17 +40,18 @@ Stu *stuAddition(Stu *students)
     else
     {
         Stu *tempStudents = students;
-        while(tempStudents)
+        while(tempStudents->nextStu != NULL)
         {
             tempStudents = tempStudents->nextStu;
         }
         int number = tempStudents->stuNumber;
         Stu *newStudent = (Stu*)calloc(1,sizeof(Stu));
         printf("Ad: ");
-        scanf("%s",newStudent->name);
+        scanf(" %[^\n]",newStudent->name);
         printf("Soyad: ");
         scanf("%s",newStudent->surname);
         newStudent->stuNumber = number+1;
+        printf("Numara: %d\n",newStudent->stuNumber);
         newStudent->lessons = NULL;
         newStudent->nextStu = NULL;
         tempStudents->nextStu = newStudent;
@@ -70,12 +72,12 @@ StuLesson *lessonAddition(StuLesson *lessons)
         printf("Final: ");
         scanf("%d",&newlesson->finalGrade);
         newlesson->nextLesson = NULL;
-        return lessons;
+        return newlesson;
     }
     else
     {
         StuLesson *tempLessons = lessons;
-        while(tempLessons)
+        while(tempLessons->nextLesson != NULL)
         {
             tempLessons = tempLessons->nextLesson;
         }
@@ -94,23 +96,25 @@ StuLesson *lessonAddition(StuLesson *lessons)
 
 void listStudent(Stu *students)
 {
-    while(students)
+    Stu *iterStudents = students;
+    while (iterStudents != NULL)
     {
         printf("\n");
-        printf("    Ad: %s\n",students->name);
-        printf("    Soyad: %s\n",students->surname);
-        printf("    Numara: %d\n",students->stuNumber);
+        printf("    Ad: %s\n", iterStudents->name);
+        printf("    Soyad: %s\n", iterStudents->surname);
+        printf("    Numara: %d\n", iterStudents->stuNumber);
         printf("    Dersler:\n");
-        while(students->lessons)
+        StuLesson *iterLesson = iterStudents->lessons;
+        while (iterLesson != NULL)
         {
-            printf("        %s\n",students->lessons->lessonName);
-            printf("        %d\n",students->lessons->midtermGrade);
-            printf("        %d\n",students->lessons->finalGrade);
-            float averageGrade = (float)(students->lessons->midtermGrade)+(students->lessons->finalGrade);
-            printf("        %.2f\n",averageGrade);
-            students->lessons = students->lessons->nextLesson;
+            printf("        Ders: %s\n", iterLesson->lessonName);
+            printf("        Vize: %d\t", iterLesson->midtermGrade);
+            printf("        Final: %d\t", iterLesson->finalGrade);
+            float averageGrade = (iterLesson->midtermGrade) + (iterLesson->finalGrade)*0.5;
+            printf("        Ortalama: %.2f\n", averageGrade);
+            iterLesson = iterLesson->nextLesson;
         }
-        students = students->nextStu; 
+        iterStudents = iterStudents->nextStu;
     }
 }
 
@@ -119,6 +123,7 @@ void main()
     int choose;
     while(1)
     {
+        printf("\n");
         printf("        Ogrenci Bilgi Sistemi\n");
         printf("    Ekleme Islemleri        ---> 1\n");
         printf("    Listeleme Islemleri     ---> 2\n");
@@ -129,22 +134,54 @@ void main()
         system("cls");
         if (choose == 1)
         {
-            int lessonNumber;
-            Students = stuAddition(Students);
-            printf("Ders Sayisi: ");
-            scanf("%d",&lessonNumber);
-            if(lessonNumber < 3)
+            printf("\n");
+            printf("    Ogrenci eklemek icin    ---> 1\n");
+            printf("    Ders eklemek icin       ---> 2\n");
+            printf("Islem secimi: ");
+            scanf("%d",&choose);
+            system("cls");
+            if(choose == 1)
             {
-                lessonNumber = 3;
+                Students = stuAddition(Students);
+                system("pause");
             }
-            for(int i = 0; i < lessonNumber; i++)
+            else if(choose == 2)
             {
-                Students->lessons = lessonAddition(Students->lessons);
-            }   
+                int number;
+                int lessonNumber;
+                printf("Ogrenci Numarasi: ");
+                scanf("%d",&number);
+                Stu *tempStudents = Students;
+                while(tempStudents != NULL && number != tempStudents->stuNumber)
+                {
+                    tempStudents = tempStudents->nextStu;
+                }
+                if(tempStudents != NULL && tempStudents->stuNumber == number)
+                {
+                    StuLesson *tempLessons = tempStudents->lessons;
+                    printf("Ders Sayisi: ");
+                    scanf("%d",&lessonNumber);
+                    if(lessonNumber < 3)
+                    {
+                        lessonNumber = 3;
+                    }
+                    for(int i = 0; i < lessonNumber; i++)
+                    {
+                        tempLessons = lessonAddition(tempLessons);
+                    }
+                    tempStudents->lessons = tempLessons;
+                }
+                else
+                {
+                    printf("Ogrenci numarasi bulunamadi... Lutfer tekrar deneyiniz...\n");
+                }
+                system("pause");
+            }
         }
         else if (choose == 2)
         {
             listStudent(Students);
+            system("pause");
         }
         else if(choose == 3)
         {
@@ -158,5 +195,6 @@ void main()
         {
             break;
         }
+        system("cls");
     }
 }
