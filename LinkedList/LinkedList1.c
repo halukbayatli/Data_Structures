@@ -20,6 +20,19 @@ typedef struct Student
     StuLesson *lessons;
 } Stu;
 
+Stu *Students = NULL;
+
+Stu *fileRead(Stu *students)
+{
+    FILE *fileStudents;
+    fileStudents = fopen("students.txt","r");
+    if(fileStudents == NULL)
+    {
+        perror("Dosya okunamadi...\n");
+        return NULL;
+    }
+}
+
 void fileWrite(Stu *students)
 {
     FILE *fileStudents;
@@ -45,44 +58,47 @@ void fileWrite(Stu *students)
     fclose(fileStudents);
 }
 
+Stu *sortStudent(Stu *students, Stu *newStudent)
+{
+    if (Students == NULL || students->stuNumber > newStudent->stuNumber)
+    {
+        newStudent->nextStu = students;
+        return newStudent;
+    }
+
+    Stu *currentStudents = students;
+    while(currentStudents->nextStu != NULL && currentStudents->nextStu->stuNumber < newStudent->stuNumber)
+    {
+        currentStudents = currentStudents->nextStu;
+    }
+    newStudent->nextStu = currentStudents->nextStu;
+    currentStudents->nextStu = newStudent;
+    return students;
+}
+
 Stu *stuAddition(Stu *students)
 {
-    srand(time(NULL));
-    Stu *headStudents = students;
-    if (students == NULL)
+    Stu *newStudent = (Stu *)calloc(1, sizeof(Stu));
+    printf("\n");
+    printf("Ad: ");
+    scanf(" %[^\n]", newStudent->name);
+    printf("Soyad: ");
+    scanf("%s", newStudent->surname);
+    printf("Numara: ");
+    scanf("%d",&newStudent->stuNumber);
+    newStudent->lessons = NULL;
+    Stu *temp = students;
+    while (temp != NULL)
     {
-        students = (Stu *)calloc(1, sizeof(Stu));
-        printf("\n");
-        printf("Ad: ");
-        scanf(" %[^\n]", students->name);
-        printf("Soyad: ");
-        scanf("%s", students->surname);
-        students->stuNumber = rand()%1000+1;
-        printf("Numara: %d\n", students->stuNumber);
-        students->lessons = NULL;
-        students->nextStu = NULL;
-        return students;
-    }
-    else
-    {
-        Stu *tempStudents = students;
-        while (tempStudents->nextStu != NULL)
+        if (temp->stuNumber == newStudent->stuNumber)
         {
-            tempStudents = tempStudents->nextStu;
+            printf("Bu numarali ogrenci mevcut lutfen tekrar deneyiniz...\n");
+            free(newStudent);
+            return students;
         }
-        Stu *newStudent = (Stu *)calloc(1, sizeof(Stu));
-        printf("\n");
-        printf("Ad: ");
-        scanf(" %[^\n]", newStudent->name);
-        printf("Soyad: ");
-        scanf("%s", newStudent->surname);
-        newStudent->stuNumber = rand()%1000+1;
-        printf("Numara: %d\n", newStudent->stuNumber);
-        newStudent->lessons = NULL;
-        newStudent->nextStu = NULL;
-        tempStudents->nextStu = newStudent;
+        temp = temp->nextStu;
     }
-    return headStudents;
+    return sortStudent(students,newStudent);
 }
 
 StuLesson *lessonAddition(StuLesson *lessons)
@@ -178,7 +194,8 @@ void listStudent(Stu *students)
     system("pause");
 }
 
-Stu *deletionStudent(Stu *students) {
+Stu *deletionStudent(Stu *students)
+{
     Stu *iterStudents = students;
     Stu *prevStudent = NULL;
     char userSurname[100];
@@ -210,13 +227,6 @@ Stu *deletionStudent(Stu *students) {
     return students; 
 }
 
-Stu *sortStudent(Stu *Students)
-{
-    
-}
-
-Stu *Students = NULL;
-
 void main()
 {
     int choose;
@@ -227,8 +237,7 @@ void main()
         printf("    Ekleme Islemleri        ---> 1\n");
         printf("    Listeleme Islemleri     ---> 2\n");
         printf("    Silme Islemleri         ---> 3\n");
-        printf("    Siralama Islemleri      ---> 4\n");
-        printf("    Cikmak icin             ---> 5\n");
+        printf("    Cikmak icin             ---> 4\n");
         printf("Islem secimi: ");
         scanf("%d", &choose);
         system("cls");
@@ -242,10 +251,6 @@ void main()
             system("cls");
             if (choose == 1)
             {
-                // if (Students == NULL)
-                // {
-                //      Students = fileRead(Students);
-                // }
                 Students = stuAddition(Students);
                 system("pause");
             }
@@ -300,10 +305,6 @@ void main()
             Students = deletionStudent(Students);
         }
         else if (choose == 4)
-        {
-            Students = sortStudent(Students);
-        }
-        else if (choose == 5)
         {
             fileWrite(Students);
             StuLesson *tempLes;
