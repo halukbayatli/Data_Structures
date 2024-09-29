@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
+#include <conio.h>
 
 typedef struct Lesson
 {
@@ -22,21 +22,66 @@ typedef struct Student
 
 Stu *Students = NULL;
 
-Stu *fileRead(Stu *students)
+Stu *fileRead(const char *filename) //Dosya Okuma Fonksiyonu
 {
     FILE *fileStudents;
-    fileStudents = fopen("students.txt","r");
-    if(fileStudents == NULL)
+    fileStudents = fopen(filename, "r");
+    if (fileStudents == NULL)
     {
-        perror("Dosya okunamadi...\n");
         return NULL;
     }
+    Stu *students = NULL, *tempStudents = NULL;
+    StuLesson *lessons = NULL, *tempLessons = NULL;
+
+    char bufferSize[256];
+    while (fgets(bufferSize, sizeof(bufferSize), fileStudents))
+    {
+        if (strcmp(bufferSize, "\n") == 0)
+        {
+            continue;
+        }
+        else
+        {
+            Stu *newStudent = (Stu *)calloc(1, sizeof(Stu));
+            sscanf(bufferSize, "%s %s %d", newStudent->name, newStudent->surname, &newStudent->stuNumber);
+            newStudent->lessons = NULL;
+            newStudent->nextStu = NULL;
+            while (fgets(bufferSize, sizeof(bufferSize), fileStudents) && bufferSize[0] != '\n')
+            {
+                StuLesson *newLesson = (StuLesson *)calloc(1, sizeof(StuLesson));
+                sscanf(bufferSize, "%s %d %d", newLesson->lessonName, &newLesson->midtermGrade, &newLesson->finalGrade);
+                newLesson->nextLesson = NULL;
+                if (newStudent->lessons == NULL)
+                {
+                    newStudent->lessons = newLesson;
+                    tempLessons = newLesson;
+                }
+                else
+                {
+                    tempLessons->nextLesson = newLesson;
+                    tempLessons = newLesson;
+                }
+            }
+            if (students == NULL)
+            {
+                students = newStudent;
+                tempStudents = newStudent;
+            }
+            else
+            {
+                tempStudents->nextStu = newStudent;
+                tempStudents = newStudent;
+            }
+        }
+    }
+    fclose(fileStudents);
+    return students;
 }
 
-void fileWrite(Stu *students)
+void fileWrite(Stu *students) //Dosya Yazma Fonksiyonu
 {
     FILE *fileStudents;
-    fileStudents = fopen("students.txt", "a");
+    fileStudents = fopen("students.txt", "w");
     if (fileStudents == NULL)
     {
         perror("Dosya okunamadi...\n");
@@ -58,25 +103,27 @@ void fileWrite(Stu *students)
     fclose(fileStudents);
 }
 
-Stu *sortStudent(Stu *students, Stu *newStudent)
+Stu *sortStudent(Stu *students, Stu *newStudent) //Sıralama Fonksiyonu
 {
     if (Students == NULL || students->stuNumber > newStudent->stuNumber)
     {
         newStudent->nextStu = students;
         return newStudent;
     }
-
-    Stu *currentStudents = students;
-    while(currentStudents->nextStu != NULL && currentStudents->nextStu->stuNumber < newStudent->stuNumber)
+    else
     {
-        currentStudents = currentStudents->nextStu;
+        Stu *currentStudents = students;
+        while (currentStudents->nextStu != NULL && currentStudents->nextStu->stuNumber < newStudent->stuNumber)
+        {
+            currentStudents = currentStudents->nextStu;
+        }
+        newStudent->nextStu = currentStudents->nextStu;
+        currentStudents->nextStu = newStudent;
     }
-    newStudent->nextStu = currentStudents->nextStu;
-    currentStudents->nextStu = newStudent;
     return students;
 }
 
-Stu *stuAddition(Stu *students)
+Stu *stuAddition(Stu *students) //Ogrenci Ekleme
 {
     Stu *newStudent = (Stu *)calloc(1, sizeof(Stu));
     printf("\n");
@@ -85,10 +132,10 @@ Stu *stuAddition(Stu *students)
     printf("Soyad: ");
     scanf("%s", newStudent->surname);
     printf("Numara: ");
-    scanf("%d",&newStudent->stuNumber);
+    scanf("%d", &newStudent->stuNumber);
     newStudent->lessons = NULL;
     Stu *temp = students;
-    while (temp != NULL)
+    while (temp)
     {
         if (temp->stuNumber == newStudent->stuNumber)
         {
@@ -98,45 +145,58 @@ Stu *stuAddition(Stu *students)
         }
         temp = temp->nextStu;
     }
-    return sortStudent(students,newStudent);
+    return sortStudent(students, newStudent);
 }
 
-StuLesson *lessonAddition(StuLesson *lessons)
+Stu *lessonAddition(Stu *students) //Ders Ekleme
 {
-    StuLesson *headLessons = lessons;
-    if (lessons == NULL)
+    Stu *headStudents = students;
+    int number, lessonNumber;    
+    printf("Ogrenci Numarasi: ");
+    scanf("%d", &number);
+    Stu *iterStudents = students;
+    while (iterStudents != NULL && iterStudents->stuNumber != number)
     {
-        StuLesson *newlesson = (StuLesson *)calloc(1, sizeof(StuLesson));
-        printf("Ders: ");
-        scanf("%s", newlesson->lessonName);
-        printf("Vize: ");
-        scanf("%d", &newlesson->midtermGrade);
-        printf("Final: ");
-        scanf("%d", &newlesson->finalGrade);
-        newlesson->nextLesson = NULL;
-        return newlesson;
+        iterStudents = iterStudents->nextStu;
     }
-    else
+    if (iterStudents != NULL) 
     {
-        StuLesson *tempLessons = lessons;
-        while (tempLessons->nextLesson != NULL)
+        printf("Ders sayisi: ");
+        scanf("%d", &lessonNumber);    
+        StuLesson *iterlessons = iterStudents->lessons;
+        for (int i = 0; i < lessonNumber; i++) 
         {
-            tempLessons = tempLessons->nextLesson;
+            StuLesson *newLesson = (StuLesson*)calloc(1, sizeof(StuLesson));
+            printf("Ders: ");
+            scanf("%s", newLesson->lessonName);
+            printf("Vize: ");
+            scanf("%d", &newLesson->midtermGrade);
+            printf("Final: ");
+            scanf("%d", &newLesson->finalGrade);
+            newLesson->nextLesson = NULL;
+            if (iterlessons == NULL) 
+            {
+                iterStudents->lessons = newLesson;
+            } 
+            else 
+            {
+                while (iterlessons->nextLesson != NULL) 
+                {
+                    iterlessons = iterlessons->nextLesson;
+                }
+                iterlessons->nextLesson = newLesson;
+            }
+            iterlessons = newLesson;
         }
-        StuLesson *newlesson = (StuLesson *)calloc(1, sizeof(StuLesson));
-        printf("Ders: ");
-        scanf("%s", newlesson->lessonName);
-        printf("Vize: ");
-        scanf("%d", &newlesson->midtermGrade);
-        printf("Final: ");
-        scanf("%d", &newlesson->finalGrade);
-        newlesson->nextLesson = NULL;
-        tempLessons->nextLesson = newlesson;
+    } 
+    else 
+    {
+        printf("Ogrenci numarasi bulunamadi... Lutfen tekrar deneyiniz\n");
     }
-    return headLessons;
+    return headStudents;
 }
 
-void listLesson(Stu *students)
+void listLesson(Stu *students) //Derse Gore Listeleme
 {
     Stu *iterStudents = students;
     char lessonName[100];
@@ -147,28 +207,25 @@ void listLesson(Stu *students)
         StuLesson *iterLesson = iterStudents->lessons;
         while (iterLesson != NULL)
         {
-            if (strcmp(lessonName,iterLesson->lessonName) == 0)
+            if (strcmp(lessonName, iterLesson->lessonName) == 0)
             {
                 printf("\n");
-                printf("    %s\n",iterLesson->lessonName);
                 printf("        Ad: %s\n", iterStudents->name);
                 printf("        Soyad: %s\n", iterStudents->surname);
                 printf("        Numara: %d\n", iterStudents->stuNumber);
-                printf("        Ders: %s\n", iterLesson->lessonName);
-                printf("        Vize: %d\t", iterLesson->midtermGrade);
+                printf("        Vize:  %d\t", iterLesson->midtermGrade);
                 printf("        Final: %d\t", iterLesson->finalGrade);
                 float averageGrade = ((iterLesson->midtermGrade) + (iterLesson->finalGrade)) * 0.5;
-                printf("        Ortalama: %.2f\n", averageGrade);
+                printf("        Ortalama: %.2f\n\n", averageGrade);
             }
             iterLesson = iterLesson->nextLesson;
         }
         iterStudents = iterStudents->nextStu;
     }
     printf("\n");
-    system("pause");
 }
 
-void listStudent(Stu *students)
+void listStudent(Stu *students) //Ogrenci Listeleme Fonkisyonu
 {
     Stu *iterStudents = students;
     while (iterStudents != NULL)
@@ -182,53 +239,71 @@ void listStudent(Stu *students)
         while (iterLesson != NULL)
         {
             printf("        Ders: %s\n", iterLesson->lessonName);
-            printf("        Vize: %d\t", iterLesson->midtermGrade);
+            printf("        Vize:  %d\t", iterLesson->midtermGrade);
             printf("        Final: %d\t", iterLesson->finalGrade);
             float averageGrade = ((iterLesson->midtermGrade) + (iterLesson->finalGrade)) * 0.5;
-            printf("        Ortalama: %.2f\n", averageGrade);
+            printf("        Ortalama: %.2f\n\n", averageGrade);
             iterLesson = iterLesson->nextLesson;
         }
         iterStudents = iterStudents->nextStu;
     }
     printf("\n");
-    system("pause");
 }
 
-Stu *deletionStudent(Stu *students)
+Stu *deletionStudent(Stu *students) //Silme Fonksiyonu
 {
     Stu *iterStudents = students;
     Stu *prevStudent = NULL;
     char userSurname[100];
     printf("Soyadi giriniz: ");
     scanf("%s", userSurname);
-    while (iterStudents != NULL) 
+    while (iterStudents != NULL)
     {
-        if (strcmp(userSurname, iterStudents->surname) == 0) 
+        if (strcmp(userSurname, iterStudents->surname) == 0)
         {
             Stu *tempStudent = iterStudents;
-            if (prevStudent == NULL) 
+            if (prevStudent == NULL)
             {
                 students = iterStudents->nextStu;
                 iterStudents = students;
-            } 
-            else 
+            }
+            else
             {
                 prevStudent->nextStu = iterStudents->nextStu;
                 iterStudents = prevStudent->nextStu;
             }
-            free(tempStudent);    
-        } 
-        else 
+            free(tempStudent);
+        }
+        else
         {
             prevStudent = iterStudents;
             iterStudents = iterStudents->nextStu;
         }
     }
-    return students; 
+    return students;
+}
+
+void freeMemory(Stu *students) //Bellek Serbet Bırakma Fonksiyonu
+{
+    StuLesson *tempLesson;
+    while (students->lessons->nextLesson != NULL)
+    {
+        tempLesson = students->lessons;
+        students->lessons = students->lessons->nextLesson;
+        free(tempLesson);
+    }
+    Stu *tempStudent;
+    while (students->nextStu != NULL)
+    {
+        tempStudent = students;
+        students = students->nextStu;
+        free(tempStudent);
+    }
 }
 
 void main()
 {
+    Students = fileRead("students.txt");
     int choose;
     while (1)
     {
@@ -252,36 +327,12 @@ void main()
             if (choose == 1)
             {
                 Students = stuAddition(Students);
-                system("pause");
             }
             else if (choose == 2)
             {
-                int number;
-                int lessonNumber;
-                printf("Ogrenci Numarasi: ");
-                scanf("%d", &number);
-                Stu *tempStudents = Students;
-                while (tempStudents != NULL && number != tempStudents->stuNumber)
-                {
-                    tempStudents = tempStudents->nextStu;
-                }
-                if (tempStudents != NULL && tempStudents->stuNumber == number)
-                {
-                    StuLesson *tempLessons = tempStudents->lessons;
-                    printf("Ders Sayisi: ");
-                    scanf("%d", &lessonNumber);
-                    for (int i = 0; i < lessonNumber; i++)
-                    {
-                        tempLessons = lessonAddition(tempLessons);
-                    }
-                    tempStudents->lessons = tempLessons;
-                }
-                else
-                {
-                    printf("Ogrenci numarasi bulunamadi... Lutfer tekrar deneyiniz...\n");
-                }
-                system("pause");
+                Students = lessonAddition(Students);
             }
+            getch();
         }
         else if (choose == 2)
         {
@@ -299,6 +350,7 @@ void main()
             {
                 listLesson(Students);
             }
+            getch();
         }
         else if (choose == 3)
         {
@@ -307,20 +359,7 @@ void main()
         else if (choose == 4)
         {
             fileWrite(Students);
-            StuLesson *tempLes;
-            while (Students->lessons->nextLesson != NULL)
-            {
-                tempLes = Students->lessons;
-                Students->lessons = Students->lessons->nextLesson;
-                free(tempLes);
-            }
-            Stu *tempStu;
-            while (Students->nextStu != NULL)
-            {
-                tempStu = Students;
-                Students = Students->nextStu;
-                free(tempStu);
-            }
+            freeMemory(Students);
             break;
         }
         system("cls");
